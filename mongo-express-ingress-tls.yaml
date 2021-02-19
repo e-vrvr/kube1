@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mongo-express-ingress
+  namespace: mongo-training # needs to be created beforehand
+spec:
+  tls:
+  - hosts:
+      - mexpress.com # added to /etc/hosts for localhost address
+    secretName: mongo-express-tls
+  ingressClassName: public #created by default in MicroK8S when you enable nginx ingress
+  rules:
+  - host: mexpress.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: mongo-express-service-for-ingress
+            port:
+              number: 8082 # port from mongo-express.yaml Service

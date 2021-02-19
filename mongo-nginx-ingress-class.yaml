@@ -1,0 +1,8 @@
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: nginx
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: k8s.io/ingress-nginx # seems that there can't be 2 classes for the same controller, if Minikube has "public" by default, this will not work and will stop other from working.

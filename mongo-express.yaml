@@ -1,0 +1,80 @@
+# Installs mongo-express admin interface
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express-depl
+  namespace: mongo-training # needs to be created beforehand
+  labels:
+    app: mongo-express
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-express
+  template:
+    metadata:
+      labels:
+        app: mongo-express
+    spec:
+      containers:
+      - name: mongo-express
+        image: mongo-express:0.54
+        ports:
+        - containerPort: 8081
+        env:
+        - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: mongo-root-username
+        - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: mongo-root-password
+        - name: ME_CONFIG_MONGODB_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: mongo-express-configmap
+              key: mongodb-url
+#        - name: ME_CONFIG_MONGODB_PORT # defaults to 27017 in mongo-express
+#          valueFrom:
+#            configMapKeyRef:
+#              name: mongo-express-configmap
+#              key: mongodb-port
+        resources:
+          requests:
+            memory: "150M" # will request 150Mb of memory from the Pod
+            cpu: "100m" # 100 miliCPU / 0.1 CPU
+          limits:
+            memory: "200M" # will use maximum of 200Mb from the Pod. If uses more, the container is scheduled for Termination, and if usage stays on the same level, eventually will be Terminaled
+            cpu: "100m"
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: mongo-express-service
+#  namespace: mongo-training # needs to be created beforehand
+#spec:
+#  selector:
+#    app: mongo-express
+#  type: LoadBalancer # to make it External service
+#  ports:
+#    - protocol: TCP
+#      port: 8081 # port of Service
+#      targetPort: 8081 # containerPort in the Deployment
+#      nodePort: 30000 # the one to be used from browser, 30000-32767 range
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-express-service-for-ingress
+  namespace: mongo-training # needs to be created beforehand
+spec:
+  selector:
+    app: mongo-express
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 8082 # port of Service
+      targetPort: 8081 # containerPort in the Deployment

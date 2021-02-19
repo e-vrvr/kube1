@@ -1,0 +1,71 @@
+# Installs mongo DB
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-depl
+  namespace: mongo-training # needs to be created beforehand
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata: # namespace will be taken from deployment
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:4.4
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: mongo-root-username
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: mongo-root-password
+        volumeMounts:
+        - name: mongodb-persistent-storage # refers to the volumes attached to Pod
+          mountPath: /data/db
+      volumes:
+      - name: mongodb-persistent-storage
+        persistentVolumeClaim:
+          claimName: mongodb-pv-claim # refers to PersistentVolumeClaim name
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-pv-claim
+  namespace: mongo-training # needs to be created beforehand
+  labels:
+    app: mongodb
+spec:
+  storageClassName: manual # will be used to bind PersistentVolumeClaim requests to PersistentVolume
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Mi
+---
+# Internal service to enable access to mongo DB
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+  namespace: mongo-training # needs to be created beforehand
+spec:
+  selector:
+    app: mongodb
+  type: ClusterIP # default, to make it Internal service
+  ports:
+    - protocol: TCP
+      port: 27017 # port of Service
+      targetPort: 27017 # containerPort in the Deployment

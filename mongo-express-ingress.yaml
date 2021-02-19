@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mongo-express-ingress
+  namespace: mongo-training # needs to be created beforehand
+  annotations:
+#    kubernetes.io/ingress.class: nginx # because multiple Ingress controllers can be installed
+spec:
+  rules:
+  - host: mexpress.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: mongo-express-service-for-ingress
+            port:
+              number: 8082 # port from mongo-express.yaml Service

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-express-configmap
+  namespace: mongo-training # needs to be created beforehand by "create namespace mongo-training"   
+data:
+  mongodb-url: mongodb-service # The name of a Service attached to Mongo DB. mongodb-service.ns_name to use it from another namespace
+  mongodb-port: "27017" # needed to be quoted to overcome 'cannot convert int64 to string' error
